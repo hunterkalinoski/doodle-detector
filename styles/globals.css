@@ -24,3 +24,56 @@ a {
     background: black;
   }
 }
+
+.App {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.canvas-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.canvas-container p {
+  font-size: 30pt;
+  margin: 0;
+}
+
+.smallCanvasContainer {
+  background-color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.panel {
+  height: 812px;
+}
+
+.panel p {
+  font-size: 30pt;
+  margin: 0;
+}
+
+.results p {
+  font-size: 20pt;
+  margin: 0;
+}
+
+.results-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 90%;
+}
+
+.settings-values span {
+  font-size: 20pt;
+  margin: 0;
+}
