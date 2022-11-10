@@ -1,5 +1,3 @@
-feed smallImage (28x28 array of 0-255 pixel values) into ML model
-print actual results of model instead of test data
 make responsive design
     - tricky with canvases, scaling doesn't work normally
         + library makes it even harder
@@ -8,9 +6,22 @@ make responsive design
         - if device width > 800, use medium settings
         - else use small settings
         ? this could work, should be easier to implement than perfectly fitting screen size
+    [alt]
+        - simply make it so left-half of drawing canvas doesn't get cut off (idk why it happens)
+        - if you just have to scroll around, thats probably okay too. (or atleast an improvement)
 ability to select drawing subject matter
     - number, letters, doodles, combinations of each of these
         + different ML model for each combination (8 total if I do all)
         ? maybe also different methods of training model (fully connected + CNN, total 16 models needed)
 fix general styling
     - red with black cursor thing looks bad imo
+fix model
+    - as sebastian lague's video, randomly rotate,scale,transform, to increase accuracy.
+change output visualization
+    - most outputs are like e-9 or something (very small compared to actualy output (ex. 99.9999% vs 0.0000000001%))
+        so maybe only show the top prediction, not all possibilities.
+
+
+DONE: 
+feed smallImage (28x28 array of 0-255 pixel values) into ML model
+print actual results of model instead of test data

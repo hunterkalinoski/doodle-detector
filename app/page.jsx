@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import CanvasDraw from "react-canvas-draw";
+import * as tf from "@tensorflow/tfjs";
 
 const PIXELS_PER_GRID_CELL = 25;
 const NUM_GRID_CELLS = 28;
@@ -12,6 +13,8 @@ export default function Page() {
   const newSmallRef = useRef(null);
   const newLargeRef = useRef(null);
   const [newLargeCount, setNewLargeCount] = useState(0); // only want to scale up once
+  const [model, setModel] = useState(null); //returns the tf model
+  const [predictionValues, setPredictionValues] = useState([]);
 
   useEffect(() => {
     // canvasRef.current.canvas.willReadFrequently = true; //doesn't work
@@ -25,6 +28,14 @@ export default function Page() {
 
       newSmallRef.current.width = NUM_GRID_CELLS;
       newSmallRef.current.height = NUM_GRID_CELLS;
+
+      const getModel = async () => {
+        const model = await tf.loadLayersModel("tfjsmodel/model.json");
+        console.log("model after awaiting is:" + model);
+        setModel(model);
+      };
+
+      getModel();
     }
   }, []);
 
@@ -37,7 +48,7 @@ export default function Page() {
     saveImage();
   };
 
-  const saveImage = () => {
+  const saveImage = async () => {
     // const base64 = canvasRef.current.canvasContainer.childNodes[1].toDataURL();
     // const bytes = base64.split(",")[1];
     // const decoded = atob(bytes);
@@ -115,6 +126,33 @@ export default function Page() {
     const largeCtx = newLargeRef.current.getContext("2d");
     largeCtx.clearRect(0, 0, newLargeRef.current.width, newLargeRef.current.height);
     largeCtx.drawImage(newSmallRef.current, 0, 0);
+
+    console.log(input);
+    // format the model's required input (1x28x28x1)
+    var input = [];
+    count = 0;
+    for (var i = 0; i < 28; i++) {
+      input[i] = [];
+      for (var j = 0; j < 28; j++) {
+        input[i][j] = smallImage[count];
+        count++;
+      }
+    }
+    var inputTensor = tf.tensor2d(input);
+    console.log(inputTensor);
+    var reshapedInputTensor = inputTensor.expandDims(0).expandDims(3);
+    console.log(reshapedInputTensor);
+
+    const prediction = await model.predict(reshapedInputTensor);
+    console.log(prediction.print());
+    var predictionValues = prediction.dataSync();
+    console.log(predictionValues);
+
+    var finalPredictionValues = [];
+    for (var i = 0; i < predictionValues.length; i++) {
+      finalPredictionValues[i] = Math.round(predictionValues[i] * 1000000000000) / 10000000000;
+    }
+    setPredictionValues(finalPredictionValues);
   };
 
   return (
@@ -147,16 +185,16 @@ export default function Page() {
         <p>Predictions:</p>
         <div className="results-container">
           <div className="results">
-            <p>8: 80%</p>
-            <p>1: 15%</p>
-            <p>9: 4%</p>
-            <p>0: 1%</p>
-            <p>2: 0%</p>
-            <p>3: 0%</p>
-            <p>4: 0%</p>
-            <p>5: 0%</p>
-            <p>6: 0%</p>
-            <p>7: 0%</p>
+            <p>0: {predictionValues[0]}%</p>
+            <p>1: {predictionValues[1]}%</p>
+            <p>2: {predictionValues[2]}%</p>
+            <p>3: {predictionValues[3]}%</p>
+            <p>4: {predictionValues[4]}%</p>
+            <p>5: {predictionValues[5]}%</p>
+            <p>6: {predictionValues[6]}%</p>
+            <p>7: {predictionValues[7]}%</p>
+            <p>8: {predictionValues[8]}%</p>
+            <p>9: {predictionValues[9]}%</p>
           </div>
         </div>
       </div>
