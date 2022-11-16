@@ -15,7 +15,7 @@ a {
   box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
   }
@@ -23,7 +23,15 @@ a {
     color: white;
     background: black;
   }
+} */
+html {
+  color-scheme: dark;
 }
+body {
+  color: white;
+  background: black;
+}
+
 
 .app {
   display: flex;
@@ -40,13 +48,7 @@ a {
 */
 @media only screen and (max-width: 768px){
   .app {
-    display: flex;
     flex-direction:column;
-    gap: 10px;
-    height: 100vh;
-    width: 100vw;
-    background-color:black;
-    padding: 0 20px;
   }
 }
 

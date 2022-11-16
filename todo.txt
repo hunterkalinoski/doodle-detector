@@ -1,14 +1,3 @@
-make responsive design
-    - tricky with canvases, scaling doesn't work normally
-        + library makes it even harder
-    * maybe make 3 modes (small, medium, large)
-        - if device width > 1500, use large settings
-        - if device width > 800, use medium settings
-        - else use small settings
-        ? this could work, should be easier to implement than perfectly fitting screen size
-    [alt]
-        - simply make it so left-half of drawing canvas doesn't get cut off (idk why it happens)
-        - if you just have to scroll around, thats probably okay too. (or atleast an improvement)
 ability to select drawing subject matter
     - number, letters, doodles, combinations of each of these
         + different ML model for each combination (8 total if I do all)
@@ -20,8 +9,29 @@ fix model
 change output visualization
     - most outputs are like e-9 or something (very small compared to actualy output (ex. 99.9999% vs 0.0000000001%))
         so maybe only show the top prediction, not all possibilities.
+fix styling on output visualization
+    - if kept similar to how it is now, values get resized after changing for the first time, make this constant
 
 
+--------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------
 DONE: 
 feed smallImage (28x28 array of 0-255 pixel values) into ML model
+
 print actual results of model instead of test data
+
+make responsive design
+    - tricky with canvases, scaling doesn't work normally
+        + library makes it even harder
+    * maybe make 3 modes (small, medium, large)
+        - if device width > 1500, use large settings
+        - if device width > 800, use medium settings
+        - else use small settings
+        ? this could work, should be easier to implement than perfectly fitting screen size
+    (alt)
+        - simply make it so left-half of drawing canvas doesn't get cut off (idk why it happens)
+        - if you just have to scroll around, thats probably okay too. (or atleast an improvement)
+    [what was completed]: (alt)
+        - sections are all constant size now, not cut off on left ever
+        - middle section no longer resizes after page fully loads.
+        - mobile views the sections vertically rather than horizontally.
