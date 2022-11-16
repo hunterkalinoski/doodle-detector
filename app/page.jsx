@@ -9,34 +9,23 @@ const NUM_GRID_CELLS = 28;
 const FULL_GRID_WIDTH = PIXELS_PER_GRID_CELL * NUM_GRID_CELLS;
 
 export default function Page() {
-  const canvasRef = useRef(null);
-  const newSmallRef = useRef(null);
-  const newLargeRef = useRef(null);
-  const [newLargeCount, setNewLargeCount] = useState(0); // only want to scale up once
+  const canvasRef = useRef(null); //ref to canvas that you draw on
+  const newSmallRef = useRef(null); // ref to canvas that displays tiny version of model input
+  const newLargeRef = useRef(null); // ref to canvas that displays large version of model input
   const [model, setModel] = useState(null); //returns the tf model
   const [predictionValues, setPredictionValues] = useState([]);
 
+  // do this on page startup
   useEffect(() => {
+    // scale the large canvas up (it is initally only 28x28 in a 700x700 container)
+    // this is necessary to achieve pixelated look
     const largeCtx = newLargeRef.current.getContext("2d");
-    if (newLargeCount == 0) {
-      newLargeRef.current.width = FULL_GRID_WIDTH;
-      newLargeRef.current.height = FULL_GRID_WIDTH;
-      largeCtx.scale(PIXELS_PER_GRID_CELL, PIXELS_PER_GRID_CELL);
-      largeCtx.imageSmoothingEnabled = false;
-      setNewLargeCount(newLargeCount + 1);
+    newLargeRef.current.width = FULL_GRID_WIDTH;
+    newLargeRef.current.height = FULL_GRID_WIDTH;
+    largeCtx.scale(PIXELS_PER_GRID_CELL, PIXELS_PER_GRID_CELL);
+    largeCtx.imageSmoothingEnabled = false;
 
-      newSmallRef.current.width = NUM_GRID_CELLS;
-      newSmallRef.current.height = NUM_GRID_CELLS;
-
-      const getModel = async () => {
-        console.log("fetching model...");
-        const model = await tf.loadLayersModel("tfjsmodel/model.json");
-        console.log("model fetched, is: " + model);
-        setModel(model);
-      };
-
-      getModel();
-    }
+    tf.loadLayersModel("tfjsmodel/model.json").then((value) => setModel(value));
   }, []);
 
   const clearCanvas = () => {
@@ -179,7 +168,9 @@ export default function Page() {
       </div>
       <div className="section model-section">
         <p>Model Input:</p>
-        <canvas ref={newLargeRef} width={700} height={700}></canvas>
+        <div className="large-model-canvas-container">
+          <canvas ref={newLargeRef} width={28} height={28}></canvas>
+        </div>
         <canvas ref={newSmallRef} width={28} height={28}></canvas>
       </div>
       <div className="section results-section">

@@ -34,6 +34,22 @@ a {
   padding: 0 20px;
 }
 
+/* 
+  for small screen devices (mobile) 
+  display sections vertically, rather than horizontally
+*/
+@media only screen and (max-width: 768px){
+  .app {
+    display: flex;
+    flex-direction:column;
+    gap: 10px;
+    height: 100vh;
+    width: 100vw;
+    background-color:black;
+    padding: 0 20px;
+  }
+}
+
 .section p{
   margin: 0;
   font-size: 30pt;
@@ -59,6 +75,11 @@ a {
 
 .clear-canvas-button {
   height: 28px;
+}
+
+.large-model-canvas-container {
+  width: 700px;
+  height: 700px
 }
 
 .prediction-values {
