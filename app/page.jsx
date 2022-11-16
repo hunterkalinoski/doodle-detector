@@ -17,7 +17,6 @@ export default function Page() {
   const [predictionValues, setPredictionValues] = useState([]);
 
   useEffect(() => {
-    // canvasRef.current.canvas.willReadFrequently = true; //doesn't work
     const largeCtx = newLargeRef.current.getContext("2d");
     if (newLargeCount == 0) {
       newLargeRef.current.width = FULL_GRID_WIDTH;
@@ -30,8 +29,9 @@ export default function Page() {
       newSmallRef.current.height = NUM_GRID_CELLS;
 
       const getModel = async () => {
+        console.log("fetching model...");
         const model = await tf.loadLayersModel("tfjsmodel/model.json");
-        console.log("model after awaiting is:" + model);
+        console.log("model fetched, is: " + model);
         setModel(model);
       };
 
@@ -55,11 +55,11 @@ export default function Page() {
     const context = canvasRef.current.ctx;
     const imageData = context["drawing"].getImageData(0, 0, FULL_GRID_WIDTH, FULL_GRID_WIDTH);
 
-    var pixels = [];
-    var i = 0;
-    for (var y = 0; y < FULL_GRID_WIDTH; y++) {
-      for (var x = 0; x < FULL_GRID_WIDTH; x++) {
-        var index = (y * imageData.width + x) * 4;
+    let pixels = [];
+    let i = 0;
+    for (let y = 0; y < FULL_GRID_WIDTH; y++) {
+      for (let x = 0; x < FULL_GRID_WIDTH; x++) {
+        let index = (y * imageData.width + x) * 4;
         // pixels[i] = {
         //   r: imageData.data[index],
         //   g: imageData.data[index + 1],
@@ -75,17 +75,17 @@ export default function Page() {
         i++;
       }
     }
-    var smallImage = [];
+    let smallImage = [];
 
     // loop over each grid cell
-    for (var y = 0; y < NUM_GRID_CELLS; y++) {
-      for (var x = 0; x < NUM_GRID_CELLS; x++) {
-        var count = 0;
+    for (let y = 0; y < NUM_GRID_CELLS; y++) {
+      for (let x = 0; x < NUM_GRID_CELLS; x++) {
+        let count = 0;
 
         // each grid cell is 25x25 pixels
         // loop over each pixel
-        for (var m = 0; m < PIXELS_PER_GRID_CELL; m++) {
-          for (var n = 0; n < PIXELS_PER_GRID_CELL; n++) {
+        for (let m = 0; m < PIXELS_PER_GRID_CELL; m++) {
+          for (let n = 0; n < PIXELS_PER_GRID_CELL; n++) {
             if (
               pixels[
                 n +
@@ -105,9 +105,9 @@ export default function Page() {
     console.log(smallImage); //smallImage contains 28x28 pixels of 0-255 value (good for ML model)
     console.log(pixels);
 
-    var newImgPixels = [];
+    let newImgPixels = [];
     // converting array of single values (grayscale) to array containing rgba data
-    for (var i = 0; i < smallImage.length; i++) {
+    for (let i = 0; i < smallImage.length; i++) {
       newImgPixels[i * 4] = smallImage[i];
       newImgPixels[i * 4 + 1] = smallImage[i];
       newImgPixels[i * 4 + 2] = smallImage[i];
@@ -117,8 +117,8 @@ export default function Page() {
 
     const newSmallCtx = newSmallRef.current.getContext("2d");
     newSmallCtx.clearRect(0, 0, newSmallRef.current.width, newSmallRef.current.height);
-    var newSmallimgData = newSmallCtx.createImageData(NUM_GRID_CELLS, NUM_GRID_CELLS);
-    for (var i = 0; i < newSmallimgData.data.length; i++) {
+    let newSmallimgData = newSmallCtx.createImageData(NUM_GRID_CELLS, NUM_GRID_CELLS);
+    for (let i = 0; i < newSmallimgData.data.length; i++) {
       newSmallimgData.data[i] = newImgPixels[i];
     }
     newSmallCtx.putImageData(newSmallimgData, 0, 0);
@@ -127,37 +127,36 @@ export default function Page() {
     largeCtx.clearRect(0, 0, newLargeRef.current.width, newLargeRef.current.height);
     largeCtx.drawImage(newSmallRef.current, 0, 0);
 
-    console.log(input);
     // format the model's required input (1x28x28x1)
-    var input = [];
-    count = 0;
-    for (var i = 0; i < 28; i++) {
+    let input = [];
+    let count = 0;
+    for (let i = 0; i < 28; i++) {
       input[i] = [];
-      for (var j = 0; j < 28; j++) {
+      for (let j = 0; j < 28; j++) {
         input[i][j] = smallImage[count];
         count++;
       }
     }
-    var inputTensor = tf.tensor2d(input);
-    console.log(inputTensor);
-    var reshapedInputTensor = inputTensor.expandDims(0).expandDims(3);
-    console.log(reshapedInputTensor);
+    let inputTensor = tf.tensor2d(input);
+    // console.log(inputTensor);
+    let reshapedInputTensor = inputTensor.expandDims(0).expandDims(3);
+    // console.log(reshapedInputTensor);
 
     const prediction = await model.predict(reshapedInputTensor);
-    console.log(prediction.print());
-    var predictionValues = prediction.dataSync();
-    console.log(predictionValues);
+    // console.log(prediction.print());
+    let predictionValues = prediction.dataSync();
+    // console.log(predictionValues);
 
-    var finalPredictionValues = [];
-    for (var i = 0; i < predictionValues.length; i++) {
+    let finalPredictionValues = [];
+    for (let i = 0; i < predictionValues.length; i++) {
       finalPredictionValues[i] = Math.round(predictionValues[i] * 1000000000000) / 10000000000;
     }
     setPredictionValues(finalPredictionValues);
   };
 
   return (
-    <div className="App">
-      <div className="canvas-container">
+    <div className="app">
+      <div className="section drawing-section">
         <p>Draw Here</p>
         <CanvasDraw
           onChange={saveImage}
@@ -174,29 +173,31 @@ export default function Page() {
           gridSizeX={PIXELS_PER_GRID_CELL}
           gridSizeY={PIXELS_PER_GRID_CELL}
         />
-        <button onClick={clearCanvas}>Clear Canvas</button>
+        <button className="clear-canvas-button" onClick={clearCanvas}>
+          Clear Canvas
+        </button>
       </div>
-      <div className="canvas-container">
-        <p>Model input:</p>
-        <canvas ref={newLargeRef}></canvas>
-        <canvas ref={newSmallRef}></canvas>
+      <div className="section model-section">
+        <p>Model Input:</p>
+        <canvas ref={newLargeRef} width={700} height={700}></canvas>
+        <canvas ref={newSmallRef} width={28} height={28}></canvas>
       </div>
-      <div className="panel">
+      <div className="section results-section">
         <p>Predictions:</p>
-        <div className="results-container">
-          <div className="results">
-            <p>0: {predictionValues[0]}%</p>
-            <p>1: {predictionValues[1]}%</p>
-            <p>2: {predictionValues[2]}%</p>
-            <p>3: {predictionValues[3]}%</p>
-            <p>4: {predictionValues[4]}%</p>
-            <p>5: {predictionValues[5]}%</p>
-            <p>6: {predictionValues[6]}%</p>
-            <p>7: {predictionValues[7]}%</p>
-            <p>8: {predictionValues[8]}%</p>
-            <p>9: {predictionValues[9]}%</p>
-          </div>
+        <div className="prediction-values">
+          <p>0: {predictionValues[0]?.toFixed(5) ?? 0}%</p>
+          <p>1: {predictionValues[1]?.toFixed(5) ?? 0}%</p>
+          <p>2: {predictionValues[2]?.toFixed(5) ?? 0}%</p>
+          <p>3: {predictionValues[3]?.toFixed(5) ?? 0}%</p>
+          <p>4: {predictionValues[4]?.toFixed(5) ?? 0}%</p>
+          <p>5: {predictionValues[5]?.toFixed(5) ?? 0}%</p>
+          <p>6: {predictionValues[6]?.toFixed(5) ?? 0}%</p>
+          <p>7: {predictionValues[7]?.toFixed(5) ?? 0}%</p>
+          <p>8: {predictionValues[8]?.toFixed(5) ?? 0}%</p>
+          <p>9: {predictionValues[9]?.toFixed(5) ?? 0}%</p>
         </div>
+        <div style={{ height: "28px" }}></div>{" "}
+        {/* makes spacing all nice (other sections have a third thing of 28px height*/}
       </div>
     </div>
   );

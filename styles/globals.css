@@ -25,55 +25,52 @@ a {
   }
 }
 
-.App {
+.app {
+  display: flex;
+  gap: 10px;
   height: 100vh;
   width: 100vw;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
+  background-color:black;
+  padding: 0 20px;
 }
 
-.canvas-container {
+.section p{
+  margin: 0;
+  font-size: 30pt;
+}
+
+.section {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-}
-
-.canvas-container p {
-  font-size: 30pt;
-  margin: 0;
-}
-
-.smallCanvasContainer {
-  background-color: white;
-  display: flex;
+  gap: 20px;
   align-items: center;
   justify-content: center;
 }
-.panel {
-  height: 812px;
+/* .drawing-section {
+  background-color: red;
+} */
+/* .model-section {
+  background-color: indigo;
+} */
+.results-section {
+  flex-grow: 1;
+  /* background-color: blue; */
 }
 
-.panel p {
-  font-size: 30pt;
-  margin: 0;
+.clear-canvas-button {
+  height: 28px;
 }
 
-.results p {
+.prediction-values {
+  height: 700px;
+  display:flex;
+  flex-direction: column;
+  justify-content: center
+}
+
+.prediction-values p {
   font-size: 20pt;
-  margin: 0;
-}
-
-.results-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 90%;
-}
-
-.settings-values span {
-  font-size: 20pt;
-  margin: 0;
+  margin:0;
+  overflow: hidden;
+  word-wrap: none;
 }
