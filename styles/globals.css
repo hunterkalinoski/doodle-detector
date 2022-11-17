@@ -46,11 +46,11 @@ body {
   for small screen devices (mobile) 
   display sections vertically, rather than horizontally
 */
-@media only screen and (max-width: 768px){
+/* @media only screen and (max-width: 768px){
   .app {
     flex-direction:column;
   }
-}
+} */
 
 .section p{
   margin: 0;
