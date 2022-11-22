@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import CanvasDraw from "react-canvas-draw";
-import * as tf from "@tensorflow/tfjs";
 
 const PIXELS_PER_GRID_CELL = 25;
 const NUM_GRID_CELLS = 28;
@@ -13,7 +12,7 @@ export default function Page() {
   const newSmallRef = useRef(null); // ref to canvas that displays tiny version of model input
   const newLargeRef = useRef(null); // ref to canvas that displays large version of model input
   const [model, setModel] = useState(null); //returns the tf model
-  const [predictionValues, setPredictionValues] = useState([]);
+  const [prediction, setPrediction] = useState(-1);
 
   // do this on page startup
   useEffect(() => {
@@ -25,16 +24,62 @@ export default function Page() {
     largeCtx.scale(PIXELS_PER_GRID_CELL, PIXELS_PER_GRID_CELL);
     largeCtx.imageSmoothingEnabled = false;
 
-    tf.loadLayersModel("tfjsmodel/model.json").then((value) => setModel(value));
+    loadModel();
   }, []);
 
-  const clearCanvas = () => {
+  // clear the drawing canvas and also clear prediction
+  const clearCanvas = async () => {
     const canvas = canvasRef.current.canvas["drawing"];
     const ctx = canvasRef.current.ctx["drawing"];
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    saveImage();
+    await saveImage(); // still required to clear other canvases
+    setPrediction(-1);
+  };
+
+  // load the tfjs model
+  const loadModel = async () => {
+    const { loadLayersModel } = await import("@tensorflow/tfjs");
+    loadLayersModel("tfjsmodel/model.json").then((value) => setModel(value));
+  };
+
+  // predict based on current canvas
+  const predictDoodle = async () => {
+    // if tf model not yet loaded
+    if (model == null) {
+      return;
+    }
+
+    // get all pixels from small image (28x28)
+    const imageData = newSmallRef.current.getContext("2d").getImageData(0, 0, 28, 28).data;
+
+    // extract r values from [r,g,b,a] array (convert to grayscale)
+    let pixels = [];
+    for (let i = 0; i < 784; i++) {
+      // stored as (r,g,b,a), where a is always 255 and r=g=b=the pixel value in grayscale
+      // so grab every 4th element in imageData (index 0, index 4, ...)
+      // this is the 'r' value [0-255]
+      pixels[i] = imageData[i * 4];
+    }
+
+    // convert pixel values to a tensor of shape [1, 28, 28, 1]
+    // idk why its 4d, this is how tfjs translates my model
+    // should already be imported from loadModel() function in useEffect()
+    const { tensor4d } = await import("@tensorflow/tfjs");
+    let tensor = tensor4d(pixels, [1, 28, 28, 1]);
+
+    // use the model to predict
+    model.predict(tensor).then((val) => {
+      const prediction = val;
+    });
+    let predictionValues = prediction.dataSync(); //[0,0,0,0,0,0,0,1,0,0] for example
+
+    // get highest predictionValue and set state
+    // just get index of largest value (predictions won't always be 0 and 1, sometimes a value is like 2.2e-19)
+    const max = Math.max(...predictionValues);
+    const finalPrediction = predictionValues.indexOf(max);
+    setPrediction(finalPrediction);
   };
 
   const saveImage = async () => {
@@ -91,8 +136,8 @@ export default function Page() {
         smallImage[y * NUM_GRID_CELLS + x] = val;
       }
     }
-    console.log(smallImage); //smallImage contains 28x28 pixels of 0-255 value (good for ML model)
-    console.log(pixels);
+    // console.log(smallImage); //smallImage contains 28x28 pixels of 0-255 value (good for ML model)
+    // console.log(pixels);
 
     let newImgPixels = [];
     // converting array of single values (grayscale) to array containing rgba data
@@ -102,7 +147,7 @@ export default function Page() {
       newImgPixels[i * 4 + 2] = smallImage[i];
       newImgPixels[i * 4 + 3] = 255;
     }
-    console.log(newImgPixels);
+    // console.log(newImgPixels);
 
     const newSmallCtx = newSmallRef.current.getContext("2d");
     newSmallCtx.clearRect(0, 0, newSmallRef.current.width, newSmallRef.current.height);
@@ -115,32 +160,6 @@ export default function Page() {
     const largeCtx = newLargeRef.current.getContext("2d");
     largeCtx.clearRect(0, 0, newLargeRef.current.width, newLargeRef.current.height);
     largeCtx.drawImage(newSmallRef.current, 0, 0);
-
-    // format the model's required input (1x28x28x1)
-    let input = [];
-    let count = 0;
-    for (let i = 0; i < 28; i++) {
-      input[i] = [];
-      for (let j = 0; j < 28; j++) {
-        input[i][j] = smallImage[count];
-        count++;
-      }
-    }
-    let inputTensor = tf.tensor2d(input);
-    // console.log(inputTensor);
-    let reshapedInputTensor = inputTensor.expandDims(0).expandDims(3);
-    // console.log(reshapedInputTensor);
-
-    const prediction = await model.predict(reshapedInputTensor);
-    // console.log(prediction.print());
-    let predictionValues = prediction.dataSync();
-    // console.log(predictionValues);
-
-    let finalPredictionValues = [];
-    for (let i = 0; i < predictionValues.length; i++) {
-      finalPredictionValues[i] = Math.round(predictionValues[i] * 1000000000000) / 10000000000;
-    }
-    setPredictionValues(finalPredictionValues);
   };
 
   return (
@@ -165,6 +184,7 @@ export default function Page() {
         <button className="clear-canvas-button" onClick={clearCanvas}>
           Clear Canvas
         </button>
+        <button onClick={predictDoodle}>Predict</button>
       </div>
       <div className="section model-section">
         <p>Model Input:</p>
@@ -174,21 +194,12 @@ export default function Page() {
         <canvas ref={newSmallRef} width={28} height={28}></canvas>
       </div>
       <div className="section results-section">
-        <p>Predictions:</p>
+        <p>Prediction:</p>
         <div className="prediction-values">
-          <p>0: {predictionValues[0]?.toFixed(5) ?? 0}%</p>
-          <p>1: {predictionValues[1]?.toFixed(5) ?? 0}%</p>
-          <p>2: {predictionValues[2]?.toFixed(5) ?? 0}%</p>
-          <p>3: {predictionValues[3]?.toFixed(5) ?? 0}%</p>
-          <p>4: {predictionValues[4]?.toFixed(5) ?? 0}%</p>
-          <p>5: {predictionValues[5]?.toFixed(5) ?? 0}%</p>
-          <p>6: {predictionValues[6]?.toFixed(5) ?? 0}%</p>
-          <p>7: {predictionValues[7]?.toFixed(5) ?? 0}%</p>
-          <p>8: {predictionValues[8]?.toFixed(5) ?? 0}%</p>
-          <p>9: {predictionValues[9]?.toFixed(5) ?? 0}%</p>
+          {prediction == -1 ? <p>Draw Something!</p> : <p>You drew a {prediction}</p>}
         </div>
-        <div style={{ height: "28px" }}></div>{" "}
-        {/* makes spacing all nice (other sections have a third thing of 28px height*/}
+        <div style={{ height: "28px" }}>{model ? "" : "model loading..."}</div>{" "}
+        {/* makes spacing all nice (other sections have a third thing of 28px height */}
       </div>
     </div>
   );

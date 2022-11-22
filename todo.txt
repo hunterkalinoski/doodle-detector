@@ -11,6 +11,9 @@ change output visualization
         so maybe only show the top prediction, not all possibilities.
 fix styling on output visualization
     - if kept similar to how it is now, values get resized after changing for the first time, make this constant
+show loading indicator while model is loading (don't let drawings attempt to go through)
+show loading indicator on very first page startup (before canvas-draw's grid appears)
+continue cleaning/refactoring/code-splitting
 
 
 --------------------------------------------------------------------------------------------------------
@@ -19,6 +22,8 @@ DONE:
 feed smallImage (28x28 array of 0-255 pixel values) into ML model
 
 print actual results of model instead of test data
+
+cleaned jsx/css/some of the code
 
 make responsive design
     - tricky with canvases, scaling doesn't work normally
