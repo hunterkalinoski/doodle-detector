@@ -1,5 +1,6 @@
 "use client";
 
+import * as tf from "@tensorflow/tfjs";
 import { useState, useRef, useEffect } from "react";
 import CanvasDraw from "react-canvas-draw";
 
@@ -27,6 +28,17 @@ export default function Page() {
     loadModel();
   }, []);
 
+  // predict bs tensor when model loads to prevent ui blocking later
+  useEffect(() => {
+    if (model == null) return;
+    const bs = async () => {
+      // const { ones } = await import("@tensorflow/tfjs");
+      const tensor = tf.ones([1, 28, 28, 1]);
+      model.predict(tensor);
+    };
+    bs();
+  }, [model]);
+
   // clear the drawing canvas and also clear prediction
   const clearCanvas = async () => {
     const canvas = canvasRef.current.canvas["drawing"];
@@ -40,8 +52,8 @@ export default function Page() {
 
   // load the tfjs model
   const loadModel = async () => {
-    const { loadLayersModel } = await import("@tensorflow/tfjs");
-    loadLayersModel("tfjsmodel/model.json").then((value) => setModel(value));
+    // const { loadLayersModel } = await import("@tensorflow/tfjs");
+    tf.loadLayersModel("tfjsmodel/model.json").then((value) => setModel(value));
   };
 
   // predict based on current canvas
@@ -66,8 +78,8 @@ export default function Page() {
     // convert pixel values to a tensor of shape [1, 28, 28, 1]
     // idk why its 4d, this is how tfjs translates my model
     // should already be imported from loadModel() function in useEffect()
-    const { tensor4d } = await import("@tensorflow/tfjs");
-    let tensor = tensor4d(pixels, [1, 28, 28, 1]);
+    // const { tensor4d } = await import("@tensorflow/tfjs");
+    let tensor = tf.tensor4d(pixels, [1, 28, 28, 1]);
 
     // predict without a web worker
     const prediction = model.predict(tensor);
