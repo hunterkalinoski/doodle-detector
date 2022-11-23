@@ -3,16 +3,18 @@ importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.j
 
 addEventListener("message", async ({ data }) => {
   // load the tfjs model
-  console.log("message received...");
   const model = await tf.loadLayersModel("http://localhost:3000/tfjsmodel/model.json");
 
   // cast pixels to a tensor
   const tensor = tf.tensor4d(data, [1, 28, 28, 1]);
 
   // predict
-  const prediction = model.predict(tensor);
+  const predictions = model.predict(tensor).dataSync();
+
+  // get largest index (the number that was predicted) and set state
+  const max = Math.max(...predictions);
+  const finalPrediction = predictions.indexOf(max);
 
   // send message with prediction
-  postMessage(prediction.dataSync());
-  console.log("message handled...");
+  postMessage(finalPrediction);
 });

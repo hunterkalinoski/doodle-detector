@@ -4,23 +4,32 @@ v0.0
     - display 700x700 enlarged version of the small canvas (now pixelated)
     - display place holder percentages for model prediction
 
-v0.1
+v1
     - imported tensorflowjs model
     - display real predictions
     - lags on page load and first prediction
 
-v0.2
+v1.1
     - fixed code quality
     - improved ui a bit
 
 
-v0.3
+v1.2
     - dynamically import tensorflow
     - code quality improvements
 
-v0.4
+v2
     - removed dynamic tensorflow import
     - code quality improvements
     - changed prediction to only the top value, instead of percents for all
     - longer initial page load, does not lag on first time drawing anymore
     - shows a little model loading thing
+
+v2.1
+    - fixed worker (only inits once, instead of every time)
+    - now using worker
+        - no longer importing tensorflow in the page
+            - speeds up initial load time drastically
+    - imported 'react-loader-spinner' to show spinner while waiting on worker response
+    - if canvas is empty, don't send message to worker, just reset things
+    - worker only sends top prediction, instead of all percents

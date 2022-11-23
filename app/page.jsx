@@ -1,7 +1,7 @@
 "use client";
 
-import * as tf from "@tensorflow/tfjs";
 import { useState, useRef, useEffect } from "react";
+import { Dna } from "react-loader-spinner";
 import CanvasDraw from "react-canvas-draw";
 
 const PIXELS_PER_GRID_CELL = 25;
@@ -12,8 +12,8 @@ export default function Page() {
   const canvasRef = useRef(null); //ref to canvas that you draw on
   const newSmallRef = useRef(null); // ref to canvas that displays tiny version of model input
   const newLargeRef = useRef(null); // ref to canvas that displays large version of model input
-  const [model, setModel] = useState(null); //returns the tf model
-  const [prediction, setPrediction] = useState(-1);
+  const [prediction, setPrediction] = useState(-1); // -1 means canvas is empty, -2 means loading, anything else is real value
+  const [worker, setWorker] = useState(null);
 
   // do this on page startup
   useEffect(() => {
@@ -25,19 +25,20 @@ export default function Page() {
     largeCtx.scale(PIXELS_PER_GRID_CELL, PIXELS_PER_GRID_CELL);
     largeCtx.imageSmoothingEnabled = false;
 
-    loadModel();
+    initWorker();
   }, []);
 
-  // predict bs tensor when model loads to prevent ui blocking later
-  useEffect(() => {
-    if (model == null) return;
-    const bs = async () => {
-      // const { ones } = await import("@tensorflow/tfjs");
-      const tensor = tf.ones([1, 28, 28, 1]);
-      model.predict(tensor);
+  // web worker to handle tensorflow stuff
+  // prevents ~1s initial load to import tensorflow
+  // prevents ~1s lag on first model.predict that happens
+  // when this thread receives message from worker, set state
+  const initWorker = () => {
+    const worker = new Worker("workers/model-worker.js");
+    worker.onmessage = ({ data }) => {
+      setPrediction(data);
     };
-    bs();
-  }, [model]);
+    setWorker(worker);
+  };
 
   // clear the drawing canvas and also clear prediction
   const clearCanvas = async () => {
@@ -46,23 +47,12 @@ export default function Page() {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    await saveImage(); // still required to clear other canvases
-    setPrediction(-1);
-  };
-
-  // load the tfjs model
-  const loadModel = async () => {
-    // const { loadLayersModel } = await import("@tensorflow/tfjs");
-    tf.loadLayersModel("tfjsmodel/model.json").then((value) => setModel(value));
+    await saveImage(false); // clears other canvases
   };
 
   // predict based on current canvas
   const predictDoodle = async () => {
-    // if tf model not yet loaded
-    if (model == null) {
-      return;
-    }
-
+    setPrediction(-2); // let program know we are loading/waiting for the result
     // get all pixels from small image (28x28)
     const imageData = newSmallRef.current.getContext("2d").getImageData(0, 0, 28, 28).data;
 
@@ -75,36 +65,13 @@ export default function Page() {
       pixels[i] = imageData[i * 4];
     }
 
-    // convert pixel values to a tensor of shape [1, 28, 28, 1]
-    // idk why its 4d, this is how tfjs translates my model
-    // should already be imported from loadModel() function in useEffect()
-    // const { tensor4d } = await import("@tensorflow/tfjs");
-    let tensor = tf.tensor4d(pixels, [1, 28, 28, 1]);
-
-    // predict without a web worker
-    const prediction = model.predict(tensor);
-    let predictionValues = prediction.dataSync(); //[0,0,0,0,0,0,0,1,0,0] for example
-
-    // get highest predictionValue and set state
-    // just get index of largest value (predictions won't always be 0 and 1, sometimes a value is like 2.2e-19)
-    const max = Math.max(...predictionValues);
-    const finalPrediction = predictionValues.indexOf(max);
-    setPrediction(finalPrediction);
-
-    // // use a web worker to predict
-    // const worker = new Worker("workers/model-worker.js");
-
-    // // when receiving message back (the prediction)
-    // worker.onmessage = ({ data }) => {
-    //   // get largest index (the number that was predicted) and set state
-    //   const max = Math.max(...data);
-    //   const prediction = data.indexOf(max);
-    //   setPrediction(prediction);
-    // };
-    // worker.postMessage(pixels);
+    // use a web worker to predict
+    worker.postMessage(pixels);
   };
 
-  const saveImage = async () => {
+  // if isContentful, save image and run through model
+  // otherwise, clear was called so no need to predict
+  const saveImage = async (isContentful) => {
     // const base64 = canvasRef.current.canvasContainer.childNodes[1].toDataURL();
     // const bytes = base64.split(",")[1];
     // const decoded = atob(bytes);
@@ -183,7 +150,12 @@ export default function Page() {
     largeCtx.clearRect(0, 0, newLargeRef.current.width, newLargeRef.current.height);
     largeCtx.drawImage(newSmallRef.current, 0, 0);
 
-    await predictDoodle();
+    // if canvas is empty, dont predict
+    if (isContentful) {
+      await predictDoodle();
+    } else {
+      setPrediction(-1);
+    }
   };
 
   return (
@@ -219,9 +191,22 @@ export default function Page() {
       <div className="section results-section">
         <p>Prediction:</p>
         <div className="prediction-values">
-          {prediction == -1 ? <p>Draw Something!</p> : <p>You drew a {prediction}</p>}
+          {prediction == -2 ? (
+            <Dna
+              visible={true}
+              height="80"
+              width="80"
+              ariaLabel="dna-loading"
+              wrapperStyle={{}}
+              wrapperClass="dna-wrapper"
+            />
+          ) : prediction == -1 ? (
+            <p>Draw Something!</p>
+          ) : (
+            <p>You drew a {prediction}</p>
+          )}
         </div>
-        <div style={{ height: "28px" }}>{model ? "" : "model loading..."}</div>{" "}
+        <div style={{ height: "28px" }}></div>{" "}
         {/* makes spacing all nice (other sections have a third thing of 28px height */}
       </div>
     </div>
