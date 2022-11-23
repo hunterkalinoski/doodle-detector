@@ -15,6 +15,14 @@ show loading indicator while model is loading (don't let drawings attempt to go 
 show loading indicator on very first page startup (before canvas-draw's grid appears)
 continue cleaning/refactoring/code-splitting
 
+ui blocks for a second after model gets imported (idk how to fix this)
+ui blocks for a second after the first time you do model.predict()
+    - tried fixing with a web worker
+        - no longer blocks ui, but
+        - still takes the same amount of time to update ui
+            - does this every time now, not just first time
+            - if cna fix this then web worker will be a good impovement
+
 
 --------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------

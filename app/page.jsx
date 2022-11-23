@@ -69,10 +69,8 @@ export default function Page() {
     const { tensor4d } = await import("@tensorflow/tfjs");
     let tensor = tensor4d(pixels, [1, 28, 28, 1]);
 
-    // use the model to predict
-    model.predict(tensor).then((val) => {
-      const prediction = val;
-    });
+    // predict without a web worker
+    const prediction = model.predict(tensor);
     let predictionValues = prediction.dataSync(); //[0,0,0,0,0,0,0,1,0,0] for example
 
     // get highest predictionValue and set state
@@ -80,6 +78,18 @@ export default function Page() {
     const max = Math.max(...predictionValues);
     const finalPrediction = predictionValues.indexOf(max);
     setPrediction(finalPrediction);
+
+    // // use a web worker to predict
+    // const worker = new Worker("workers/model-worker.js");
+
+    // // when receiving message back (the prediction)
+    // worker.onmessage = ({ data }) => {
+    //   // get largest index (the number that was predicted) and set state
+    //   const max = Math.max(...data);
+    //   const prediction = data.indexOf(max);
+    //   setPrediction(prediction);
+    // };
+    // worker.postMessage(pixels);
   };
 
   const saveImage = async () => {
@@ -160,6 +170,8 @@ export default function Page() {
     const largeCtx = newLargeRef.current.getContext("2d");
     largeCtx.clearRect(0, 0, newLargeRef.current.width, newLargeRef.current.height);
     largeCtx.drawImage(newSmallRef.current, 0, 0);
+
+    await predictDoodle();
   };
 
   return (
@@ -184,7 +196,6 @@ export default function Page() {
         <button className="clear-canvas-button" onClick={clearCanvas}>
           Clear Canvas
         </button>
-        <button onClick={predictDoodle}>Predict</button>
       </div>
       <div className="section model-section">
         <p>Model Input:</p>
