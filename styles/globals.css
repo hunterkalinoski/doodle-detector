@@ -24,76 +24,37 @@ a {
     background: black;
   }
 } */
-html {
+/* html {
   color-scheme: dark;
 }
 body {
   color: white;
   background: black;
-}
-
+} */
 
 .app {
-  display: flex;
-  gap: 10px;
-  height: 100vh;
-  width: 100vw;
-  background-color:black;
-  padding: 0 20px;
+    width: 100vw;
+    height: 100vh;
+    background: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-/* 
-  for small screen devices (mobile) 
-  display sections vertically, rather than horizontally
-*/
-/* @media only screen and (max-width: 768px){
-  .app {
-    flex-direction:column;
-  }
-} */
-
-.section p{
-  margin: 0;
-  font-size: 30pt;
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-right: 10px;
 }
 
-.section {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  align-items: center;
-  justify-content: center;
-}
-/* .drawing-section {
-  background-color: red;
-} */
-/* .model-section {
-  background-color: indigo;
-} */
-.results-section {
-  flex-grow: 1;
-  /* background-color: blue; */
+.clear-button {
+    padding: 2px;
+    border: 1px solid black;
+    border-radius: 5px;
 }
 
-.clear-canvas-button {
-  height: 28px;
-}
-
-.large-model-canvas-container {
-  width: 700px;
-  height: 700px
-}
-
-.prediction-values {
-  height: 700px;
-  display:flex;
-  flex-direction: column;
-  justify-content: center
-}
-
-.prediction-values p {
-  font-size: 20pt;
-  margin:0;
-  overflow: hidden;
-  word-wrap: none;
+.canvas-main {
+    border: 1px solid black;
+    border-radius: 5px;
 }

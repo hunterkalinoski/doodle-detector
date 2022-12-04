@@ -6,45 +6,21 @@ fix general styling
     - red with black cursor thing looks bad imo
 fix model
     - as sebastian lague's video, randomly rotate,scale,transform, to increase accuracy.
-change output visualization
-    - most outputs are like e-9 or something (very small compared to actualy output (ex. 99.9999% vs 0.0000000001%))
-        so maybe only show the top prediction, not all possibilities.
-fix styling on output visualization
-    - if kept similar to how it is now, values get resized after changing for the first time, make this constant
-show loading indicator while model is loading (don't let drawings attempt to go through)
-show loading indicator on very first page startup (before canvas-draw's grid appears)
-continue cleaning/refactoring/code-splitting
 
-ui blocks for a second after model gets imported (idk how to fix this)
-ui blocks for a second after the first time you do model.predict()
-    - tried fixing with a web worker
-        - no longer blocks ui, but
-        - still takes the same amount of time to update ui
-            - does this every time now, not just first time
-            - if cna fix this then web worker will be a good impovement
+continue cleaning/refactoring/code-splitting (saveImage function)
 
+maybe revert to showing all predictions, if new model gives better values for it.
 
---------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------
-DONE: 
-feed smallImage (28x28 array of 0-255 pixel values) into ML model
+send message to web worker when it loads, so first time drawing doesn't cause the little bit of lag
 
-print actual results of model instead of test data
+find a way to access a mouse-move event on the react-canvas-draw component
+    - will allow me to calculate the pixelated version of drawing in real-time, instead of on mouse-up
+    - can make the react-canvas-draw component invisible and overlay with other one
+        - drawing will appear pixelated directly from the beginning
+    - additionally, model predictions will happen constantly, maybe better user experience
+    ! doesn't really seem possible, maybe implement a simplified drawing component myself
+        - shouldn't be too bad, many tutorials
+        - I am using almost none of the cool features of react-canvas-draw
+        - grid lines may be difficult, but unnecessary if I overlap the 2 canvases.
 
-cleaned jsx/css/some of the code
-
-make responsive design
-    - tricky with canvases, scaling doesn't work normally
-        + library makes it even harder
-    * maybe make 3 modes (small, medium, large)
-        - if device width > 1500, use large settings
-        - if device width > 800, use medium settings
-        - else use small settings
-        ? this could work, should be easier to implement than perfectly fitting screen size
-    (alt)
-        - simply make it so left-half of drawing canvas doesn't get cut off (idk why it happens)
-        - if you just have to scroll around, thats probably okay too. (or atleast an improvement)
-    [what was completed]: (alt)
-        - sections are all constant size now, not cut off on left ever
-        - middle section no longer resizes after page fully loads.
-        - mobile views the sections vertically rather than horizontally.
+make ui mobile-friendly

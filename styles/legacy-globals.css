@@ -1,0 +1,103 @@
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* @media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark;
+  }
+  body {
+    color: white;
+    background: black;
+  }
+} */
+html {
+  color-scheme: dark;
+}
+body {
+  color: white;
+  background: black;
+}
+
+
+.app {
+  display: flex;
+  gap: 10px;
+  height: 100vh;
+  width: 100vw;
+  background-color:black;
+  padding: 0 20px;
+}
+
+/* 
+  for small screen devices (mobile) 
+  display sections vertically, rather than horizontally
+*/
+/* @media only screen and (max-width: 768px){
+  .app {
+    flex-direction:column;
+  }
+} */
+
+.section p{
+  margin: 0;
+  font-size: 30pt;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+  justify-content: center;
+}
+/* .drawing-section {
+  background-color: red;
+} */
+/* .model-section {
+  background-color: indigo;
+} */
+.results-section {
+  flex-grow: 1;
+  /* background-color: blue; */
+}
+
+.clear-canvas-button {
+  height: 28px;
+}
+
+.large-model-canvas-container {
+  width: 700px;
+  height: 700px
+}
+
+.prediction-values {
+  height: 700px;
+  display:flex;
+  flex-direction: column;
+  justify-content: center
+}
+
+.prediction-values p {
+  font-size: 20pt;
+  margin:0;
+  overflow: hidden;
+  word-wrap: none;
+}
+
+.test-page {
+  background: white;
+}
