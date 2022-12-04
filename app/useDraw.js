@@ -3,6 +3,11 @@ import { useEffect, useRef, useState } from "react";
 export const useDraw = (onDraw) => {
   const [mouseDown, setMouseDown] = useState(false);
 
+  // flip from true -> false when any drawing is made (on mousemove)
+  // listen to this with useeffect
+  // essentially value is useless, but changes when canvas changes
+  const [canvasChanged, setCanvasChanged] = useState(false);
+
   const canvasRef = useRef(null);
   const prevPoint = useRef(null);
 
@@ -16,6 +21,7 @@ export const useDraw = (onDraw) => {
     if (!ctx) return;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    setCanvasChanged(!canvasChanged);
   };
 
   useEffect(() => {
@@ -28,6 +34,7 @@ export const useDraw = (onDraw) => {
 
       onDraw({ ctx, currentPoint, prevPoint: prevPoint.current });
       prevPoint.current = currentPoint;
+      setCanvasChanged(!canvasChanged);
     };
 
     const computePointInCanvas = (e) => {
@@ -57,5 +64,5 @@ export const useDraw = (onDraw) => {
     };
   }, [onDraw]);
 
-  return { canvasRef, onMouseDown, clear };
+  return { canvasRef, onMouseDown, clear, canvasChanged };
 };
