@@ -190,6 +190,7 @@ const page = ({}) => {
           <canvas
             ref={canvasRef}
             onMouseDown={onMouseDown}
+            onTouchStart={onMouseDown}
             width={CANVAS_SIZE}
             height={CANVAS_SIZE}
             className="canvas-main"

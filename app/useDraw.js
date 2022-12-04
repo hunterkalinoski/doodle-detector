@@ -28,8 +28,12 @@ export const useDraw = (onDraw) => {
 
   useEffect(() => {
     const handler = (e) => {
+      e.preventDefault();
       if (!mouseDown) return;
-      const currentPoint = computePointInCanvas(e);
+      let currentPoint = computePointInCanvas(e.clientX, e.clientY);
+      if (isNaN(currentPoint.x)) {
+        currentPoint = computePointInCanvas(e.touches[0].clientX, e.touches[0].clientY);
+      }
 
       const ctx = canvasRef.current?.getContext("2d");
       if (!ctx || !currentPoint) return;
@@ -40,13 +44,13 @@ export const useDraw = (onDraw) => {
       setCanvasCleared(false);
     };
 
-    const computePointInCanvas = (e) => {
+    const computePointInCanvas = (eX, eY) => {
       const canvas = canvasRef.current;
       if (!canvas) return;
 
       const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      const x = eX - rect.left;
+      const y = eY - rect.top;
 
       return { x, y };
     };
@@ -58,12 +62,16 @@ export const useDraw = (onDraw) => {
 
     // Add event listeners
     canvasRef.current?.addEventListener("mousemove", handler);
+    canvasRef.current?.addEventListener("touchmove", handler);
     window.addEventListener("mouseup", mouseUpHandler);
+    window.addEventListener("touchend", mouseUpHandler);
 
     // Remove event listeners
     return () => {
       canvasRef.current?.removeEventListener("mousemove", handler);
+      canvasRef.current?.removeEventListener("touchmove", handler);
       window.removeEventListener("mouseup", mouseUpHandler);
+      window.removeEventListener("touchend", mouseUpHandler);
     };
   }, [onDraw]);
 
