@@ -7,6 +7,7 @@ export const useDraw = (onDraw) => {
   // listen to this with useeffect
   // essentially value is useless, but changes when canvas changes
   const [canvasChanged, setCanvasChanged] = useState(false);
+  const [canvasCleared, setCanvasCleared] = useState(false);
 
   const canvasRef = useRef(null);
   const prevPoint = useRef(null);
@@ -22,6 +23,7 @@ export const useDraw = (onDraw) => {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     setCanvasChanged(!canvasChanged);
+    setCanvasCleared(true);
   };
 
   useEffect(() => {
@@ -35,6 +37,7 @@ export const useDraw = (onDraw) => {
       onDraw({ ctx, currentPoint, prevPoint: prevPoint.current });
       prevPoint.current = currentPoint;
       setCanvasChanged(!canvasChanged);
+      setCanvasCleared(false);
     };
 
     const computePointInCanvas = (e) => {
@@ -64,5 +67,5 @@ export const useDraw = (onDraw) => {
     };
   }, [onDraw]);
 
-  return { canvasRef, onMouseDown, clear, canvasChanged };
+  return { canvasRef, onMouseDown, clear, canvasChanged, canvasCleared };
 };

@@ -9,7 +9,7 @@ const PIXELS_PER_GRID_CELL = 25;
 const CANVAS_SIZE = NUM_GRID_CELLS * PIXELS_PER_GRID_CELL;
 
 const page = ({}) => {
-  const { canvasRef, onMouseDown, clear, canvasChanged } = useDraw(drawLine);
+  const { canvasRef, onMouseDown, clear, canvasChanged, canvasCleared } = useDraw(drawLine);
   const newSmallRef = useRef(null); // ref to canvas that displays tiny version of model input
   const newLargeRef = useRef(null); // ref to canvas that displays large version of model input
   const [prediction, setPrediction] = useState(-1); // -1 means canvas is empty, -2 means loading, anything else is real value
@@ -30,8 +30,8 @@ const page = ({}) => {
 
   // do this when canvas changes (when some line is put on the canvas)
   useEffect(() => {
-    saveImage();
-  }, [canvasChanged]);
+    saveImage(!canvasCleared);
+  }, [canvasChanged, canvasCleared]);
 
   // web worker to handle tensorflow stuff
   // prevents ~1s initial load to import tensorflow
@@ -47,15 +47,18 @@ const page = ({}) => {
 
   // predict based on current canvas
   const predictDoodle = async () => {
+    if (worker == null) {
+      return;
+    }
     setPrediction(-2); // let program know we are loading/waiting for the result
     // get all pixels from small image (28x28)
     const imageData = newSmallRef.current
-      .getContext("2d")
+      .getContext("2d", { willReadFrequently: true })
       .getImageData(0, 0, NUM_GRID_CELLS, NUM_GRID_CELLS).data;
 
     // extract r values from [r,g,b,a] array (convert to grayscale)
     let pixels = [];
-    for (let i = 0; i < CANVAS_SIZE; i++) {
+    for (let i = 0; i < Math.pow(NUM_GRID_CELLS, 2); i++) {
       // stored as (r,g,b,a), where a is always 255 and r=g=b=the pixel value in grayscale
       // so grab every 4th element in imageData (index 0, index 4, ...)
       // this is the 'r' value [0-255]
@@ -69,7 +72,7 @@ const page = ({}) => {
   // if isContentful, save image and run through model
   // otherwise, clear was called so no need to predict
   const saveImage = async (isContentful) => {
-    const context = canvasRef.current.getContext("2d");
+    const context = canvasRef.current.getContext("2d", { willReadFrequently: true });
     // const imageData = context["drawing"].getImageData(0, 0, FULL_GRID_WIDTH, FULL_GRID_WIDTH);
     const imageData = context.getImageData(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
@@ -140,6 +143,7 @@ const page = ({}) => {
       newSmallimgData.data[i] = newImgPixels[i];
     }
     newSmallCtx.putImageData(newSmallimgData, 0, 0);
+    // console.log(newSmallimgData.data);
 
     const largeCtx = newLargeRef.current.getContext("2d");
     largeCtx.clearRect(0, 0, newLargeRef.current.width, newLargeRef.current.height);
@@ -154,7 +158,6 @@ const page = ({}) => {
   };
 
   function drawLine({ prevPoint, currentPoint, ctx }) {
-    console.log("drawLine");
     const { x: currX, y: currY } = currentPoint;
     const lineColor = "red";
     const lineWidth = 75;
@@ -202,6 +205,25 @@ const page = ({}) => {
         height={NUM_GRID_CELLS}
         className="canvas-small"
       />
+      <div className="results-section">
+        <p>Prediction:</p>
+        <div className="prediction-values">
+          {prediction == -2 ? (
+            <Dna
+              visible={true}
+              height="80"
+              width="80"
+              ariaLabel="dna-loading"
+              wrapperStyle={{}}
+              wrapperClass="dna-wrapper"
+            />
+          ) : prediction == -1 ? (
+            <p>Draw Something!</p>
+          ) : (
+            <p>You drew a {prediction}</p>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
