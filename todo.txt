@@ -1,13 +1,7 @@
-create model with google quickdraw dataset
+maybe redo quickdraw model, its not that great
+ - cannot detect circles
+ - also bad at triangles
 
-a thing to switch between to decide what your subject matter will be (number vs. drawing (vs. both?))
 
-quickdraw labels: circle, star, triangle, umbrella + basketball, cat, fish, house
-0 - basketball,
-1 - cat,
-2 - circle,
-3 - fish,
-4 - house,
-5 - star,
-6 - triangle,
-7 - umbrella,
+fix UI
+toggle thing looks terrible

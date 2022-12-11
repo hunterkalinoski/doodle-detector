@@ -17,6 +17,8 @@ const page = ({}) => {
   // const [worker, setWorker] = useState(null);
   const [loading, setLoading] = useState(true);
   const [MNISTmodel, setMNISTModel] = useState(null);
+  const [quickdrawModel, setQuickdrawModel] = useState(null);
+  const [usingMNIST, setUsingMNIST] = useState(false);
 
   // do this on page startup
   useEffect(() => {
@@ -29,9 +31,13 @@ const page = ({}) => {
     largeCtx.imageSmoothingEnabled = false;
 
     // initWorker();
-    tf.loadLayersModel("tfjsmodels/mnist/cnn-augmented/model.json").then((value) => {
-      setMNISTModel(value);
-      setLoading(false);
+    tf.loadLayersModel("tfjsmodels/mnist/cnn-augmented/model.json").then((m) => {
+      setMNISTModel(m);
+      tf.loadLayersModel("tfjsmodels/quickdraw/cnn-augmented/model.json").then((q) => {
+        setQuickdrawModel(q);
+        setUsingMNIST(true);
+        setLoading(false);
+      });
     });
   }, []);
 
@@ -78,16 +84,24 @@ const page = ({}) => {
     const tensor = tf.tensor4d(pixels, [1, 28, 28, 1]);
 
     // predict
-    let predictions;
-    if (MNISTmodel != null) {
-      predictions = MNISTmodel.predict(tensor).dataSync();
+    let p;
+    if (usingMNIST) {
+      if (MNISTmodel != null) {
+        p = MNISTmodel.predict(tensor).dataSync();
+      } else {
+        p = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+      }
     } else {
-      predictions = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+      if (quickdrawModel != null) {
+        p = quickdrawModel.predict(tensor).dataSync();
+      } else {
+        p = [0, 0, 0, 0, 0, 0, 0, 0];
+      }
     }
 
-    // get largest index (the number that was predicted) and set state
-    const max = Math.max(...predictions);
-    const finalPrediction = predictions.indexOf(max);
+    // // get largest index (the number that was predicted) and set state
+    const max = Math.max(...p);
+    const finalPrediction = p.indexOf(max);
     setPrediction(finalPrediction);
   };
 
@@ -182,7 +196,7 @@ const page = ({}) => {
   function drawLine({ prevPoint, currentPoint, ctx }) {
     const { x: currX, y: currY } = currentPoint;
     const lineColor = "red";
-    const lineWidth = 75;
+    const lineWidth = 50;
 
     let startPoint = prevPoint ?? currentPoint;
     ctx.beginPath();
@@ -197,6 +211,47 @@ const page = ({}) => {
     ctx.arc(startPoint.x, startPoint.y, 2, 0, 2 * Math.PI);
     ctx.fill();
   }
+
+  const RenderPrediction = () => {
+    if (!usingMNIST) {
+      let label = "";
+      switch (prediction) {
+        case 0:
+          label = "basketball";
+          break;
+        case 1:
+          label = "cat";
+          break;
+        case 2:
+          label = "circle";
+          break;
+        case 3:
+          label = "fish";
+          break;
+        case 4:
+          label = "house";
+          break;
+        case 5:
+          label = "star";
+          break;
+        case 6:
+          label = "triangle";
+          break;
+        case 7:
+          label = "umbrella";
+          break;
+      }
+
+      return <p>You drew a {label}</p>;
+    }
+
+    return <p>You drew a {prediction}</p>;
+  };
+
+  const switchModes = () => {
+    setUsingMNIST(!usingMNIST);
+    clear();
+  };
 
   return (
     <div className="app">
@@ -229,6 +284,10 @@ const page = ({}) => {
         className="canvas-small"
       />
       <div className="results-section">
+        <p>Currently detecting {usingMNIST ? "numbers" : "doodles"}.</p>
+        <button onClick={switchModes}>
+          {usingMNIST ? "switch to doodles" : "switch to numbers"}
+        </button>
         <p>Prediction:</p>
         <div className="prediction-values">
           {loading ? (
@@ -243,7 +302,7 @@ const page = ({}) => {
           ) : prediction == -1 ? (
             <p>Draw Something!</p>
           ) : (
-            <p>You drew a {prediction}</p>
+            <RenderPrediction />
           )}
         </div>
       </div>
