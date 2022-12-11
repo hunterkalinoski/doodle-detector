@@ -1,16 +1,13 @@
-ability to select drawing subject matter
-    - number, letters, doodles, combinations of each of these
-        + different ML model for each combination (8 total if I do all)
-        ? maybe also different methods of training model (fully connected + CNN, total 16 models needed)
+create model with google quickdraw dataset
 
-fix model
-    - as sebastian lague's video, randomly rotate,scale,transform, to increase accuracy.
+a thing to switch between to decide what your subject matter will be (number vs. drawing (vs. both?))
 
-continue cleaning/refactoring/code-splitting (saveImage function)
-
-maybe revert to showing all predictions, if new model gives better values for it.
-
-web worker throws out old event as soon as a new one comes in (not possible?)
-    - when deployed, the web worker gets clogged a bit and over time sends back results with a large delay
-    
-make ui mobile-friendly
+quickdraw labels: circle, star, triangle, umbrella + basketball, cat, fish, house
+0 - basketball,
+1 - cat,
+2 - circle,
+3 - fish,
+4 - house,
+5 - star,
+6 - triangle,
+7 - umbrella,

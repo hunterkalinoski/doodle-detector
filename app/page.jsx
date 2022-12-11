@@ -3,6 +3,7 @@
 import { Dna } from "react-loader-spinner";
 import { useState, useRef, useEffect } from "react";
 import { useDraw } from "./useDraw";
+import * as tf from "@tensorflow/tfjs";
 
 const NUM_GRID_CELLS = 28;
 const PIXELS_PER_GRID_CELL = 25;
@@ -12,8 +13,10 @@ const page = ({}) => {
   const { canvasRef, onMouseDown, clear, canvasChanged, canvasCleared } = useDraw(drawLine);
   const newSmallRef = useRef(null); // ref to canvas that displays tiny version of model input
   const newLargeRef = useRef(null); // ref to canvas that displays large version of model input
-  const [prediction, setPrediction] = useState(-1); // -1 means canvas is empty, -2 means loading, anything else is real value
-  const [worker, setWorker] = useState(null);
+  const [prediction, setPrediction] = useState(-1); // -1 means canvas is empty, anything else is real value
+  // const [worker, setWorker] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [MNISTmodel, setMNISTModel] = useState(null);
 
   // do this on page startup
   useEffect(() => {
@@ -25,7 +28,11 @@ const page = ({}) => {
     largeCtx.scale(PIXELS_PER_GRID_CELL, PIXELS_PER_GRID_CELL); // want it to look like 28 x 28 pixels
     largeCtx.imageSmoothingEnabled = false;
 
-    initWorker();
+    // initWorker();
+    tf.loadLayersModel("tfjsmodels/mnist/cnn-augmented/model.json").then((value) => {
+      setMNISTModel(value);
+      setLoading(false);
+    });
   }, []);
 
   // do this when canvas changes (when some line is put on the canvas)
@@ -37,20 +44,19 @@ const page = ({}) => {
   // prevents ~1s initial load to import tensorflow
   // prevents ~1s lag on first model.predict that happens
   // when this thread receives message from worker, set state
-  const initWorker = () => {
-    const worker = new Worker("workers/model-worker.js");
-    worker.onmessage = ({ data }) => {
-      setPrediction(data);
-    };
-    setWorker(worker);
-  };
+  // const initWorker = () => {
+  //   const worker = new Worker("workers/model-worker.js");
+  //   worker.onmessage = ({ data }) => {
+  //     setPrediction(data);
+  //   };
+  //   setWorker(worker);
+  // };
 
   // predict based on current canvas
   const predictDoodle = async () => {
-    if (worker == null) {
-      return;
-    }
-    setPrediction(-2); // let program know we are loading/waiting for the result
+    // if (worker == null) {
+    //   return;
+    // }
     // get all pixels from small image (28x28)
     const imageData = newSmallRef.current
       .getContext("2d", { willReadFrequently: true })
@@ -66,7 +72,23 @@ const page = ({}) => {
     }
 
     // use a web worker to predict
-    worker.postMessage(pixels);
+    // worker.postMessage(pixels);
+
+    // cast pixels to a tensor
+    const tensor = tf.tensor4d(pixels, [1, 28, 28, 1]);
+
+    // predict
+    let predictions;
+    if (MNISTmodel != null) {
+      predictions = MNISTmodel.predict(tensor).dataSync();
+    } else {
+      predictions = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    }
+
+    // get largest index (the number that was predicted) and set state
+    const max = Math.max(...predictions);
+    const finalPrediction = predictions.indexOf(max);
+    setPrediction(finalPrediction);
   };
 
   // if isContentful, save image and run through model
@@ -209,7 +231,7 @@ const page = ({}) => {
       <div className="results-section">
         <p>Prediction:</p>
         <div className="prediction-values">
-          {prediction == -2 ? (
+          {loading ? (
             <Dna
               visible={true}
               height="80"
