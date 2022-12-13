@@ -1,7 +1,0 @@
-maybe redo quickdraw model, its not that great
- - cannot detect circles
- - also bad at triangles
-
-
-fix UI
-toggle thing looks terrible

@@ -33,7 +33,7 @@ const page = ({}) => {
     // initWorker();
     tf.loadLayersModel("tfjsmodels/mnist/cnn-augmented/model.json").then((m) => {
       setMNISTModel(m);
-      tf.loadLayersModel("tfjsmodels/quickdraw/cnn-augmented/model.json").then((q) => {
+      tf.loadLayersModel("tfjsmodels/quickdraw/base/model.json").then((q) => {
         setQuickdrawModel(q);
         setUsingMNIST(true);
         setLoading(false);
@@ -196,7 +196,7 @@ const page = ({}) => {
   function drawLine({ prevPoint, currentPoint, ctx }) {
     const { x: currX, y: currY } = currentPoint;
     const lineColor = "red";
-    const lineWidth = 50;
+    const lineWidth = 40;
 
     let startPoint = prevPoint ?? currentPoint;
     ctx.beginPath();
@@ -242,10 +242,10 @@ const page = ({}) => {
           break;
       }
 
-      return <p>You drew a {label}</p>;
+      return <p>You drew a: {label}</p>;
     }
 
-    return <p>You drew a {prediction}</p>;
+    return <p>You drew a: {prediction}</p>;
   };
 
   const switchModes = () => {
@@ -284,26 +284,27 @@ const page = ({}) => {
         className="canvas-small"
       />
       <div className="results-section">
-        <p>Currently detecting {usingMNIST ? "numbers" : "doodles"}.</p>
-        <button onClick={switchModes}>
-          {usingMNIST ? "switch to doodles" : "switch to numbers"}
+        <p className="currently-detecting-label">Model: {usingMNIST ? "MNIST" : "QuickDraw"}</p>
+        <button type="button" onClick={switchModes}>
+          {usingMNIST ? "Switch to QuickDraw" : "Switch to MNIST"}
         </button>
-        <p>Prediction:</p>
-        <div className="prediction-values">
-          {loading ? (
-            <Dna
-              visible={true}
-              height="80"
-              width="80"
-              ariaLabel="dna-loading"
-              wrapperStyle={{}}
-              wrapperClass="dna-wrapper"
-            />
-          ) : prediction == -1 ? (
-            <p>Draw Something!</p>
-          ) : (
-            <RenderPrediction />
-          )}
+        <div className="pred-container">
+          <div className="prediction-values">
+            {loading ? (
+              <Dna
+                visible={true}
+                height="80"
+                width="80"
+                ariaLabel="dna-loading"
+                wrapperStyle={{}}
+                wrapperClass="dna-wrapper"
+              />
+            ) : prediction == -1 ? (
+              <p>Draw Something!</p>
+            ) : (
+              <RenderPrediction />
+            )}
+          </div>
         </div>
       </div>
     </div>
